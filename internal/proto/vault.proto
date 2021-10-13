@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+import "srp.proto";
+
+package proto;
+
+option go_package = "./proto";
+
+message Vault {
+	map<string, bytes> Contents = 1;
+}
+
+service VaultServer {
+	rpc GetVault(stream ClientPayload) returns (stream ServerPayload) {}
+	rpc SetVault(stream ClientPayload) returns (stream ServerPayload) {}
+}

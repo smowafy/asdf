@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package proto;
+
+option go_package = "./proto";
+
+message ClientPayload {
+	bytes Body = 1;
+}
+
+message ServerPayload {
+	bytes Body = 1;
+}
+
+message ClientVerifier {
+	string Id = 1;
+	string Verif = 2;
+	string AccountId = 3;
+}
+
+message VerifierStored {
+	bool Success = 1;
+}
+
+service SrpServer {
+	rpc SignUp(ClientVerifier) returns (VerifierStored) {}
+}
