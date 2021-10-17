@@ -2,13 +2,16 @@ package server
 
 import(
 	"github.com/smowafy/asdf/internal/proto"
+	"google.golang.org/grpc"
 	srp "github.com/opencoff/go-srp"
 	"errors"
 	"context"
 )
 
-func (asdfServer *AsdfServer) Pake(stream proto.GenericServerStream) ([]byte, string, error) {
-	accountIdByte, err := stream.Recv()
+func (asdfServer AsdfServer) Pake(stream grpc.ServerStream) ([]byte, string, error) {
+	accountIdByte := &proto.ClientPayload{}
+
+	err := stream.RecvMsg(accountIdByte)
 
 	if err != nil {
 		 return nil, "", err
@@ -16,7 +19,9 @@ func (asdfServer *AsdfServer) Pake(stream proto.GenericServerStream) ([]byte, st
 
 	accountId := string(accountIdByte.Body)
 
-	clientIdAndPublicKey, err := stream.Recv()
+	clientIdAndPublicKey := &proto.ClientPayload{}
+
+	err = stream.RecvMsg(clientIdAndPublicKey)
 
 	if err != nil {
 		 return nil, "", err
@@ -49,13 +54,15 @@ func (asdfServer *AsdfServer) Pake(stream proto.GenericServerStream) ([]byte, st
 
 	serverCredentialsString := srv.Credentials()
 
-	err = stream.Send(&proto.ServerPayload{Body: []byte(serverCredentialsString)})
+	err = stream.SendMsg(&proto.ServerPayload{Body: []byte(serverCredentialsString)})
 
 	if err != nil {
 		 return nil, "", err
 	}
 
-	clientAuth, err := stream.Recv()
+	clientAuth := &proto.ClientPayload{}
+
+	err = stream.RecvMsg(clientAuth)
 
 	if err != nil {
 		 return nil, "", err
@@ -67,12 +74,12 @@ func (asdfServer *AsdfServer) Pake(stream proto.GenericServerStream) ([]byte, st
 		return nil, "", errors.New("client verification not ok")
 	}
 
-	err = stream.Send(&proto.ServerPayload{Body: []byte(proof)})
+	err = stream.SendMsg(&proto.ServerPayload{Body: []byte(proof)})
 
 	return srv.RawKey(), accountId, nil
 }
 
-func (asdfServer *AsdfServer) SignUp(ctx context.Context, clientVerifier *proto.ClientVerifier) (*proto.VerifierStored, error) {
+func (asdfServer AsdfServer) SignUp(ctx context.Context, clientVerifier *proto.ClientVerifier) (*proto.VerifierStored, error) {
 	err := asdfServer.db.SetVerifier(clientVerifier.Id, clientVerifier.Verif, clientVerifier.AccountId)
 
 	if err != nil {

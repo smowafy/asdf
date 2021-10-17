@@ -2,6 +2,7 @@ package server
 
 import(
 	"log"
+	"errors"
 	"net"
 	"google.golang.org/grpc"
 	"github.com/smowafy/asdf/internal/proto"
@@ -10,10 +11,33 @@ import(
 
 type AsdfServer struct {
 	db database.Database
+	rawKey []byte
 }
 
 func (s *AsdfServer) Close() error {
 	return s.db.Close()
+}
+
+func PakeInterceptor(srv interface{}, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+	if info.FullMethod == "/proto.SrpServer/SignUp" {
+		return handler(srv, stream)
+	}
+
+	mainSrv, ok := srv.(*AsdfServer)
+
+	if !ok {
+		return errors.New("type assertion failed on srv\n")
+	}
+
+	rawKey, _, err := mainSrv.Pake(stream)
+
+	if err != nil {
+		return err
+	}
+
+	workerSrv := AsdfServer{db: mainSrv.db, rawKey: rawKey}
+
+	return handler(workerSrv, stream)
 }
 
 func StartServer() {
@@ -35,7 +59,9 @@ func StartServer() {
 
 	defer s.Close()
 
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(
+		grpc.StreamInterceptor(PakeInterceptor),
+	)
 
 	proto.RegisterSrpServerServer(grpcServer, &s)
 	proto.RegisterVaultServerServer(grpcServer, &s)

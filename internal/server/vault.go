@@ -6,12 +6,8 @@ import(
 	"fmt"
 )
 
-func (asdfServer *AsdfServer) GetVault(stream proto.VaultServer_GetVaultServer) error {
-	rawKey, _, err := asdfServer.Pake(stream) // accountId is ignored for now
-
-	if err != nil {
-		return err
-	}
+func (asdfServer AsdfServer) GetVault(stream proto.VaultServer_GetVaultServer) error {
+	rawKey := asdfServer.rawKey
 
 	encryptedGetVaultPayload, err := stream.Recv()
 
@@ -34,7 +30,6 @@ func (asdfServer *AsdfServer) GetVault(stream proto.VaultServer_GetVaultServer) 
 	}
 
 	if vaultBlob == nil {
-		fmt.Printf("---------\n[server GetVault] this shit is empty\n")
 		err = stream.Send(&proto.ServerPayload{})
 	} else {
 		fmt.Printf("vault blob: %v\n", vaultBlob)
@@ -57,14 +52,8 @@ func (asdfServer *AsdfServer) GetVault(stream proto.VaultServer_GetVaultServer) 
 	return nil
 }
 
-func (asdfServer *AsdfServer) SetVault(stream proto.VaultServer_SetVaultServer) error {
-	fmt.Printf("[server SetVault] start\n")
-
-	rawKey, _, err := asdfServer.Pake(stream)
-
-	if err != nil {
-		return err
-	}
+func (asdfServer AsdfServer) SetVault(stream proto.VaultServer_SetVaultServer) error {
+	rawKey := asdfServer.rawKey
 
 	sessionEncryptedVaultId, err := stream.Recv()
 
@@ -83,12 +72,8 @@ func (asdfServer *AsdfServer) SetVault(stream proto.VaultServer_SetVaultServer) 
 	sessionEncryptedVault, err := stream.Recv()
 
 	if err != nil {
-		fmt.Printf("error is not nil, err: %v\n", err)
-
 		return err
 	}
-
-	fmt.Printf("encrypted blob: %v\n", sessionEncryptedVault)
 
 	encryptedVaultBlob, err := utils.AesDecrypt(rawKey, sessionEncryptedVault.Body)
 

@@ -66,6 +66,7 @@ func NewSqliteDatabase(connStr string) (*SqliteDatabase, error) {
 	if connStr == "" {
 		connStr = DefaultConnStr
 	}
+
 	db, err := sql.Open("sqlite3", connStr)
 
 	if err != nil {
@@ -148,21 +149,40 @@ func (d *SqliteDatabase) Close() error {
 
 
 func (d *SqliteDatabase) bootstrapSchema() error {
-	if _, err := d.db.Exec(createVerifierTableStmt); err != nil {
+	tx , err := d.db.Begin()
+
+	if err != nil {
 		return err
 	}
 
-	if _, err := d.db.Exec(createVerifierIndexStmt); err != nil {
+	if _, err := tx.Exec(createVerifierTableStmt); err != nil {
+		if rbErr := tx.Rollback(); rbErr != nil {
+			return fmt.Errorf("tx error: %v, rollback error: %v\n", err, rbErr)
+		}
+
 		return err
 	}
 
-	if _, err := d.db.Exec(createVaultTableStmt); err != nil {
+	if _, err := tx.Exec(createVerifierIndexStmt); err != nil {
+		if rbErr := tx.Rollback(); rbErr != nil {
+			return fmt.Errorf("tx error: %v, rollback error: %v\n", err, rbErr)
+		}
 		return err
 	}
 
-	if _, err := d.db.Exec(createVaultIndexStmt); err != nil {
+	if _, err := tx.Exec(createVaultTableStmt); err != nil {
+		if rbErr := tx.Rollback(); rbErr != nil {
+			return fmt.Errorf("tx error: %v, rollback error: %v\n", err, rbErr)
+		}
 		return err
 	}
 
-	return nil
+	if _, err := tx.Exec(createVaultIndexStmt); err != nil {
+		if rbErr := tx.Rollback(); rbErr != nil {
+			return fmt.Errorf("tx error: %v, rollback error: %v\n", err, rbErr)
+		}
+		return err
+	}
+
+	return tx.Commit()
 }
