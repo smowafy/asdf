@@ -1,7 +1,7 @@
 package database
 
 type MemoryDatabase struct {
-	lookup map[string]string
+	lookup     map[string]string
 	vaultBlobs map[string][]byte
 }
 

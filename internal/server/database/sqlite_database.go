@@ -1,9 +1,9 @@
 package database
 
-import(
+import (
 	"database/sql"
-	_ "github.com/mattn/go-sqlite3"
 	"fmt"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 const (
@@ -18,7 +18,7 @@ const (
 		account_id TEXT
 	)
 	`
-	createVerifierIndexStmt=`
+	createVerifierIndexStmt = `
 	CREATE UNIQUE INDEX IF NOT EXISTS verifiers_on_verifier_id
 	ON verifiers(verifier_id)
 	`
@@ -147,9 +147,8 @@ func (d *SqliteDatabase) Close() error {
 	return d.db.Close()
 }
 
-
 func (d *SqliteDatabase) bootstrapSchema() error {
-	tx , err := d.db.Begin()
+	tx, err := d.db.Begin()
 
 	if err != nil {
 		return err

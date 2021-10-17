@@ -1,16 +1,16 @@
 package utils
 
-import(
+import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
-	"io"
 	"encoding/base64"
-//	"fmt"
+	"io"
+	//	"fmt"
 )
 
 func AesEncrypt(key []byte, payload []byte) ([]byte, error) {
-//	fmt.Printf("------------- AES encrypt begin ----------------\n")
+	//	fmt.Printf("------------- AES encrypt begin ----------------\n")
 	block, err := aes.NewCipher(key)
 
 	if err != nil {
@@ -21,17 +21,17 @@ func AesEncrypt(key []byte, payload []byte) ([]byte, error) {
 
 	nonce := make([]byte, gcm.NonceSize())
 
-//	fmt.Printf("nonce size: %v\n", gcm.NonceSize())
+	//	fmt.Printf("nonce size: %v\n", gcm.NonceSize())
 
 	if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
 		return nil, err
 	}
 
-//	fmt.Printf("nonce missing?: %v\n", nonce)
+	//	fmt.Printf("nonce missing?: %v\n", nonce)
 
 	rawCipherText := gcm.Seal(nonce, nonce, payload, nil)
 
-//	fmt.Printf("rawCipherText: %v, len = %v\n", rawCipherText, len(rawCipherText))
+	//	fmt.Printf("rawCipherText: %v, len = %v\n", rawCipherText, len(rawCipherText))
 
 	encoding := base64.StdEncoding
 
@@ -41,23 +41,23 @@ func AesEncrypt(key []byte, payload []byte) ([]byte, error) {
 
 	encoding.Encode(encodedCipherText, rawCipherText)
 
-//	fmt.Printf("encodedCipherText: %v\n", encodedCipherText)
+	//	fmt.Printf("encodedCipherText: %v\n", encodedCipherText)
 
-//	fmt.Printf("------------- AES encrypt end ----------------\n")
+	//	fmt.Printf("------------- AES encrypt end ----------------\n")
 
 	return encodedCipherText, nil
 }
 
 func AesDecrypt(key []byte, encodedCipherText []byte) ([]byte, error) {
-//	fmt.Printf("------------- AES decrypt begin ----------------\n")
+	//	fmt.Printf("------------- AES decrypt begin ----------------\n")
 
 	encoding := base64.StdEncoding
 
-//	fmt.Printf("encodedCipherText: %v\n", encodedCipherText)
+	//	fmt.Printf("encodedCipherText: %v\n", encodedCipherText)
 
 	decodedLen := encoding.DecodedLen(len(encodedCipherText))
 
-//	fmt.Printf("decodedLen: %v\n", decodedLen)
+	//	fmt.Printf("decodedLen: %v\n", decodedLen)
 
 	nonceAndCipherText := make([]byte, decodedLen)
 
@@ -69,7 +69,7 @@ func AesDecrypt(key []byte, encodedCipherText []byte) ([]byte, error) {
 
 	nonceAndCipherText = nonceAndCipherText[:actual]
 
-//	fmt.Printf("nonceAndCipherText: %v\n", nonceAndCipherText)
+	//	fmt.Printf("nonceAndCipherText: %v\n", nonceAndCipherText)
 
 	block, err := aes.NewCipher(key)
 
@@ -81,11 +81,11 @@ func AesDecrypt(key []byte, encodedCipherText []byte) ([]byte, error) {
 
 	nonceSize := gcm.NonceSize()
 
-//	fmt.Printf("nonce size: %v\n", nonceSize)
+	//	fmt.Printf("nonce size: %v\n", nonceSize)
 
 	nonce, cipherText := nonceAndCipherText[:nonceSize], nonceAndCipherText[nonceSize:]
 
-//	fmt.Printf("nonce: %v\n cipherText: %v\n", nonce, cipherText)
+	//	fmt.Printf("nonce: %v\n cipherText: %v\n", nonce, cipherText)
 
 	plaintext, err := gcm.Open(nil, nonce, cipherText, nil)
 
@@ -93,7 +93,7 @@ func AesDecrypt(key []byte, encodedCipherText []byte) ([]byte, error) {
 		return nil, err
 	}
 
-//	fmt.Printf("------------- AES decrypt end ----------------\n")
+	//	fmt.Printf("------------- AES decrypt end ----------------\n")
 
 	return plaintext, nil
 }

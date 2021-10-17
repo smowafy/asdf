@@ -1,16 +1,16 @@
 package server
 
-import(
-	"log"
+import (
 	"errors"
-	"net"
-	"google.golang.org/grpc"
 	"github.com/smowafy/asdf/internal/proto"
 	"github.com/smowafy/asdf/internal/server/database"
+	"google.golang.org/grpc"
+	"log"
+	"net"
 )
 
 type AsdfServer struct {
-	db database.Database
+	db     database.Database
 	rawKey []byte
 }
 

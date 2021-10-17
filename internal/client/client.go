@@ -1,18 +1,18 @@
 package client
 
-import(
-	srp "github.com/opencoff/go-srp"
+import (
 	"encoding/json"
+	srp "github.com/opencoff/go-srp"
 )
 
 type AsdfClient struct {
 	encryptedUserPrivateKey *EncryptedUserPrivateKey
-	clientSecret []byte
-	mukSalt []byte
-	RawKey []byte
-	muk []byte
-	srpClient *srp.Client
-	AccountId string
+	clientSecret            []byte
+	mukSalt                 []byte
+	RawKey                  []byte
+	muk                     []byte
+	srpClient               *srp.Client
+	AccountId               string
 }
 
 func NewAsdfClient(masterPassword string, accountId string) (*AsdfClient, error) {
@@ -36,7 +36,7 @@ func NewAsdfClient(masterPassword string, accountId string) (*AsdfClient, error)
 		return client, err
 	}
 
-	if _, err := client.InitSrpClient(masterPassword, accountId); err != nil{
+	if _, err := client.InitSrpClient(masterPassword, accountId); err != nil {
 		return client, err
 	}
 
@@ -46,31 +46,31 @@ func NewAsdfClient(masterPassword string, accountId string) (*AsdfClient, error)
 func (asdfClient AsdfClient) MarshalJSON() ([]byte, error) {
 	encPrivKey, err := json.Marshal(asdfClient.encryptedUserPrivateKey)
 
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 
 	encSrpClient, err := json.Marshal(asdfClient.srpClient)
 
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 
 	j, err := json.Marshal(
 		struct {
 			EncryptedUserPrivateKey string
-			ClientSecret []byte
-			MukSalt []byte
-			RawKey []byte
-			Muk []byte
-			SrpClient string
+			ClientSecret            []byte
+			MukSalt                 []byte
+			RawKey                  []byte
+			Muk                     []byte
+			SrpClient               string
 		}{
 			EncryptedUserPrivateKey: string(encPrivKey),
-			ClientSecret: asdfClient.clientSecret,
-			MukSalt: asdfClient.mukSalt,
-			RawKey: asdfClient.RawKey,
-			Muk: asdfClient.muk,
-			SrpClient: string(encSrpClient),
+			ClientSecret:            asdfClient.clientSecret,
+			MukSalt:                 asdfClient.mukSalt,
+			RawKey:                  asdfClient.RawKey,
+			Muk:                     asdfClient.muk,
+			SrpClient:               string(encSrpClient),
 		})
 
 	if err != nil {

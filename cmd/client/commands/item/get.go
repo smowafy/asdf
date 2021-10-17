@@ -1,17 +1,17 @@
 package item
 
-import(
-	"github.com/spf13/cobra"
-	"github.com/smowafy/asdf/internal/client"
+import (
 	"fmt"
+	"github.com/smowafy/asdf/internal/client"
+	"github.com/spf13/cobra"
 )
 
 var ItemGetCommand = &cobra.Command{
 	Use:   "get",
 	Short: "get item from a vault, gets from the default vault if no vault ID provided",
-//	Long: `echo long`,
+	//	Long: `echo long`,
 	Args: cobra.ExactArgs(1),
-	Run: RunItemGetCommand,
+	Run:  RunItemGetCommand,
 }
 
 // TODO: pass account ID and password only once to client

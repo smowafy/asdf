@@ -1,9 +1,9 @@
 package server
 
-import(
-	"github.com/smowafy/asdf/utils"
-	"github.com/smowafy/asdf/internal/proto"
+import (
 	"fmt"
+	"github.com/smowafy/asdf/internal/proto"
+	"github.com/smowafy/asdf/utils"
 )
 
 func (asdfServer AsdfServer) GetVault(stream proto.VaultServer_GetVaultServer) error {

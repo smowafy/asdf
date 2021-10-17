@@ -1,6 +1,6 @@
 package common
 
-import(
+import (
 	"github.com/smowafy/asdf/internal/proto"
 	protobuf "google.golang.org/protobuf/proto"
 )

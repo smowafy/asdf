@@ -1,11 +1,11 @@
 package server
 
-import(
+import (
+	"context"
+	"errors"
+	srp "github.com/opencoff/go-srp"
 	"github.com/smowafy/asdf/internal/proto"
 	"google.golang.org/grpc"
-	srp "github.com/opencoff/go-srp"
-	"errors"
-	"context"
 )
 
 func (asdfServer AsdfServer) Pake(stream grpc.ServerStream) ([]byte, string, error) {
@@ -14,7 +14,7 @@ func (asdfServer AsdfServer) Pake(stream grpc.ServerStream) ([]byte, string, err
 	err := stream.RecvMsg(accountIdByte)
 
 	if err != nil {
-		 return nil, "", err
+		return nil, "", err
 	}
 
 	accountId := string(accountIdByte.Body)
@@ -24,13 +24,13 @@ func (asdfServer AsdfServer) Pake(stream grpc.ServerStream) ([]byte, string, err
 	err = stream.RecvMsg(clientIdAndPublicKey)
 
 	if err != nil {
-		 return nil, "", err
+		return nil, "", err
 	}
 
 	id, A, err := srp.ServerBegin(string(clientIdAndPublicKey.Body))
 
 	if err != nil {
-		 return nil, "", err
+		return nil, "", err
 	}
 
 	verifierString, err := asdfServer.db.GetVerifier(id, accountId)
@@ -49,7 +49,6 @@ func (asdfServer AsdfServer) Pake(stream grpc.ServerStream) ([]byte, string, err
 		return nil, "", err
 	}
 
-
 	srv, err := s.NewServer(v, A)
 
 	serverCredentialsString := srv.Credentials()
@@ -57,7 +56,7 @@ func (asdfServer AsdfServer) Pake(stream grpc.ServerStream) ([]byte, string, err
 	err = stream.SendMsg(&proto.ServerPayload{Body: []byte(serverCredentialsString)})
 
 	if err != nil {
-		 return nil, "", err
+		return nil, "", err
 	}
 
 	clientAuth := &proto.ClientPayload{}
@@ -65,7 +64,7 @@ func (asdfServer AsdfServer) Pake(stream grpc.ServerStream) ([]byte, string, err
 	err = stream.RecvMsg(clientAuth)
 
 	if err != nil {
-		 return nil, "", err
+		return nil, "", err
 	}
 
 	proof, ok := srv.ClientOk(string(clientAuth.Body))

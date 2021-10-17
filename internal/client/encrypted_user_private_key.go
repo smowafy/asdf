@@ -5,9 +5,9 @@ import (
 	"crypto/rsa"
 	"crypto/sha256"
 	"encoding/json"
+	"fmt"
 	"github.com/smowafy/asdf/utils"
 	"os"
-	"fmt"
 )
 
 const EncryptedUserKeyFileName string = "encrypted-user-key.rsa.asdf"
@@ -22,7 +22,6 @@ func NewEncryptedUserPrivateKey(muk []byte) (*EncryptedUserPrivateKey, error) {
 	if err != nil {
 		return nil, err
 	}
-
 
 	fmt.Printf("[NewEncryptedUserPrivateKey] userPrivateKey: %v\n", userPrivateKey)
 
@@ -81,7 +80,6 @@ func (eupk *EncryptedUserPrivateKey) RsaEncrypt(plaintext []byte, muk []byte) ([
 	return cipher, nil
 }
 
-
 func (eupk *EncryptedUserPrivateKey) RsaDecrypt(ciphertext []byte, muk []byte) ([]byte, error) {
 	rsaKey, err := eupk.decryptUserKey(muk)
 
@@ -105,7 +103,6 @@ func readEncryptedUserPrivateKeyFromFile(filename string) (*EncryptedUserPrivate
 		return nil, err
 	}
 
-
 	fmt.Printf("[readEncryptedUserPrivateKeyFromFile] encryptedUserPrivateKeyPayload: %v\n", string(payload))
 
 	return &EncryptedUserPrivateKey{data: payload}, nil
@@ -117,7 +114,6 @@ func generateAndSaveEncryptedUserPrivateKey(muk []byte) (*EncryptedUserPrivateKe
 	}
 
 	encryptedUserPrivateKey, err := NewEncryptedUserPrivateKey(muk)
-
 
 	fmt.Printf("[generateAndSaveEncryptedUserPrivateKey] encryptedUserPrivateKey: %v\n", encryptedUserPrivateKey)
 

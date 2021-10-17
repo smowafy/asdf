@@ -1,8 +1,8 @@
 package client
 
-import(
-	"os"
+import (
 	"crypto/rand"
+	"os"
 )
 
 const ClientSecretFileName string = "client-key.rand.asdf"

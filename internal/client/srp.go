@@ -1,17 +1,17 @@
 package client
 
-import(
-	"google.golang.org/grpc"
-	"github.com/smowafy/asdf/internal/proto"
-	"errors"
+import (
 	"context"
+	"errors"
+	"github.com/smowafy/asdf/internal/proto"
+	"google.golang.org/grpc"
 )
 
 func (asdfClient *AsdfClient) SignUp(masterPassword string, accountId string) error {
 	v, err := asdfClient.GetSrpVerifier(masterPassword, accountId)
 
 	if err != nil {
-			return err
+		return err
 	}
 
 	id, verifier := v.Encode()
@@ -19,7 +19,7 @@ func (asdfClient *AsdfClient) SignUp(masterPassword string, accountId string) er
 	conn, err := grpc.Dial(":5555", grpc.WithInsecure())
 
 	if err != nil {
-		 return err
+		return err
 	}
 
 	defer conn.Close()
@@ -28,7 +28,7 @@ func (asdfClient *AsdfClient) SignUp(masterPassword string, accountId string) er
 
 	res, err := client.SignUp(context.Background(), &proto.ClientVerifier{Id: id, Verif: verifier, AccountId: accountId})
 
-	if err != nil{
+	if err != nil {
 		return err
 	}
 
@@ -42,8 +42,8 @@ func (asdfClient *AsdfClient) SignUp(masterPassword string, accountId string) er
 func (asdfClient *AsdfClient) Pake(stream proto.GenericClientStream) ([]byte, error) {
 	err := stream.Send(&proto.ClientPayload{Body: []byte(asdfClient.AccountId)})
 
-	if err != nil{
-		 return nil, err
+	if err != nil {
+		return nil, err
 	}
 
 	c := asdfClient.srpClient
@@ -52,8 +52,8 @@ func (asdfClient *AsdfClient) Pake(stream proto.GenericClientStream) ([]byte, er
 
 	err = stream.Send(&proto.ClientPayload{Body: []byte(creds)})
 
-	if err != nil{
-		 return nil, err
+	if err != nil {
+		return nil, err
 	}
 
 	serverCreds, err := stream.Recv()
@@ -66,7 +66,7 @@ func (asdfClient *AsdfClient) Pake(stream proto.GenericClientStream) ([]byte, er
 	auth, err := c.Generate(string(serverCreds.Body))
 
 	if err != nil {
-		 return nil, err
+		return nil, err
 	}
 
 	err = stream.Send(&proto.ClientPayload{Body: []byte(auth)})
@@ -78,7 +78,7 @@ func (asdfClient *AsdfClient) Pake(stream proto.GenericClientStream) ([]byte, er
 	serverProof, err := stream.Recv()
 
 	if err != nil {
-		 return nil, err
+		return nil, err
 	}
 
 	if !c.ServerOk(string(serverProof.Body)) {

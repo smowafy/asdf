@@ -1,16 +1,16 @@
 package item
 
-import(
-	"github.com/spf13/cobra"
+import (
 	"github.com/smowafy/asdf/internal/client"
+	"github.com/spf13/cobra"
 )
 
 var ItemSetCommand = &cobra.Command{
 	Use:   "set",
 	Short: "set item in a vault, sets in the default vault if no vault ID provided",
-//	Long: `echo long`,
+	//	Long: `echo long`,
 	Args: cobra.ExactArgs(2),
-	Run: RunItemSetCommand,
+	Run:  RunItemSetCommand,
 }
 
 // TODO: pass account ID and password only once to client

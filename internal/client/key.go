@@ -3,11 +3,11 @@ package client
 import (
 	"crypto/rand"
 	"crypto/sha256"
+	srp "github.com/opencoff/go-srp"
+	"golang.org/x/crypto/hkdf"
+	"golang.org/x/crypto/scrypt"
 	"io"
 	"os"
-	"golang.org/x/crypto/scrypt"
-	"golang.org/x/crypto/hkdf"
-	srp "github.com/opencoff/go-srp"
 )
 
 const MukSaltFileName string = "muk-salt.rand.asdf"
@@ -76,7 +76,6 @@ func (c *AsdfClient) createMukSalt() ([]byte, error) {
 
 	return c.mukSalt, nil
 }
-
 
 func (c *AsdfClient) GetMuk(masterPassword string, accountId string) ([]byte, error) {
 	var err error

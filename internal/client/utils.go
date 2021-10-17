@@ -1,9 +1,9 @@
 package client
 
-import(
-	"os"
-	"encoding/json"
+import (
 	"encoding/base64"
+	"encoding/json"
+	"os"
 )
 
 func readFromFileName(filename string) ([]byte, error) {
@@ -24,7 +24,7 @@ func readFromFileName(filename string) ([]byte, error) {
 	payload := make([]byte, base64.StdEncoding.DecodedLen(encSize))
 	pEnc := make([]byte, encSize)
 
-	if  _, err = f.Read(pEnc); err != nil {
+	if _, err = f.Read(pEnc); err != nil {
 		return nil, err
 	}
 
@@ -50,7 +50,7 @@ func writeToFileName(filename string, payload []byte) error {
 
 	base64.StdEncoding.Encode(pEnc, payload)
 
-	if _, err := f.Write(pEnc); err != nil{
+	if _, err := f.Write(pEnc); err != nil {
 		return err
 	}
 
@@ -62,13 +62,12 @@ func writeToFileNameWithPerm(filename string, payload []byte, perm os.FileMode) 
 
 	base64.StdEncoding.Encode(pEnc, payload)
 
-	if err := os.WriteFile(filename, pEnc, perm); err != nil{
+	if err := os.WriteFile(filename, pEnc, perm); err != nil {
 		return err
 	}
 
 	return nil
 }
-
 
 func WriteJsonToFile(filename string, content interface{}) error {
 	jsonRes, err := json.Marshal(content)

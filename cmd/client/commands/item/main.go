@@ -1,12 +1,12 @@
 package item
 
-import(
+import (
 	"github.com/spf13/cobra"
 )
 
-var(
+var (
 	accountId string
-	password string
+	password  string
 )
 
 var ItemCommand = &cobra.Command{

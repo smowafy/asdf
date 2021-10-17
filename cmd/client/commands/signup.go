@@ -1,16 +1,16 @@
 package commands
 
-import(
-	"github.com/spf13/cobra"
+import (
 	"github.com/smowafy/asdf/internal/client"
+	"github.com/spf13/cobra"
 )
 
 var SignUpCommand = &cobra.Command{
 	Use:   "signup",
 	Short: "sign up with a new account ID",
-//	Long: `echo long`,
+	//	Long: `echo long`,
 	Args: cobra.ExactArgs(2),
-	Run: RunSignUpCommand,
+	Run:  RunSignUpCommand,
 }
 
 // TODO: pass account ID and password only once to client

@@ -1,13 +1,13 @@
 package client
 
-import(
-	"google.golang.org/grpc"
-	"github.com/smowafy/asdf/internal/proto"
-	"github.com/smowafy/asdf/internal/common"
-	"github.com/smowafy/asdf/utils"
+import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/smowafy/asdf/internal/common"
+	"github.com/smowafy/asdf/internal/proto"
+	"github.com/smowafy/asdf/utils"
+	"google.golang.org/grpc"
 )
 
 func (c *AsdfClient) EncryptVault(v common.Vault) ([]byte, error) {
@@ -34,7 +34,6 @@ func (c *AsdfClient) EncryptVault(v common.Vault) ([]byte, error) {
 	return cipher, nil
 }
 
-
 func (c *AsdfClient) DecryptVault(cipher []byte) (common.Vault, error) {
 	privKey, err := c.getEncryptedUserPrivateKey(c.muk)
 
@@ -55,7 +54,7 @@ func (asdfClient *AsdfClient) GetVault() (common.Vault, error) {
 	conn, err := grpc.Dial(":5555", grpc.WithInsecure())
 
 	if err != nil {
-		 return nil, err
+		return nil, err
 	}
 
 	defer conn.Close()
@@ -119,7 +118,7 @@ func (asdfClient *AsdfClient) SetVault(vault common.Vault) error {
 	conn, err := grpc.Dial(":5555", grpc.WithInsecure())
 
 	if err != nil {
-		 return err
+		return err
 	}
 
 	defer conn.Close()
@@ -151,7 +150,7 @@ func (asdfClient *AsdfClient) SetVault(vault common.Vault) error {
 	}
 
 	encryptedVaultBlob, err := asdfClient.EncryptVault(vault)
-	
+
 	if err != nil {
 		return err
 	}

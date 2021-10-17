@@ -1,6 +1,6 @@
 package main
 
-import(
+import (
 	"github.com/smowafy/asdf/internal/server"
 )
 
