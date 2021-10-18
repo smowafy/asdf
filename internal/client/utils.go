@@ -2,12 +2,24 @@ package client
 
 import (
 	"encoding/base64"
-	"encoding/json"
+	"fmt"
 	"os"
 )
 
-func readFromFileName(filename string) ([]byte, error) {
-	f, err := os.Open(filename)
+func fullFilename(dirname, filename string) string {
+	return fmt.Sprintf("%s/%s", dirname, filename)
+}
+
+func statFromFileName(dirname, filename string) error {
+	_, err := os.Stat(fullFilename(dirname, filename))
+
+	return err
+}
+
+func readFromFileName(dirname, filename string) ([]byte, error) {
+	fullFilename := fullFilename(dirname, filename)
+
+	f, err := os.Open(fullFilename)
 
 	if err != nil {
 		return nil, err
@@ -37,8 +49,16 @@ func readFromFileName(filename string) ([]byte, error) {
 	return payload[:l], nil
 }
 
-func writeToFileName(filename string, payload []byte) error {
-	f, err := os.Create(filename)
+func writeToFileName(dirname, filename string, payload []byte) error {
+	err := os.MkdirAll(dirname, 0700)
+
+	if err != nil {
+		return err
+	}
+
+	fullFilename := fullFilename(dirname, filename)
+
+	f, err := os.Create(fullFilename)
 
 	if err != nil {
 		return err
@@ -63,30 +83,6 @@ func writeToFileNameWithPerm(filename string, payload []byte, perm os.FileMode) 
 	base64.StdEncoding.Encode(pEnc, payload)
 
 	if err := os.WriteFile(filename, pEnc, perm); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func WriteJsonToFile(filename string, content interface{}) error {
-	jsonRes, err := json.Marshal(content)
-
-	if err != nil {
-		return err
-	}
-
-	return writeToFileNameWithPerm(filename, jsonRes, 0600)
-}
-
-func ReadJsonFromFile(filename string, content interface{}) error {
-	data, err := readFromFileName(filename)
-
-	if err != nil {
-		return err
-	}
-
-	if err = json.Unmarshal(data, content); err != nil {
 		return err
 	}
 

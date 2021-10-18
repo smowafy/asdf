@@ -7,25 +7,24 @@ import (
 	"golang.org/x/crypto/hkdf"
 	"golang.org/x/crypto/scrypt"
 	"io"
-	"os"
 )
 
 const MukSaltFileName string = "muk-salt.rand.asdf"
 
-func readMukSaltFromFile(filename string) ([]byte, error) {
-	return readFromFileName(MukSaltFileName)
+func readMukSaltFromFile(accountId, filename string) ([]byte, error) {
+	return readFromFileName(accountId, MukSaltFileName)
 }
 
-func generateAndSaveMukSalt() ([]byte, error) {
-	if _, err := os.Stat(MukSaltFileName); err == nil {
-		return readMukSaltFromFile(MukSaltFileName)
+func generateAndSaveMukSalt(accountId string) ([]byte, error) {
+	if err := statFromFileName(accountId, MukSaltFileName); err == nil {
+		return readMukSaltFromFile(accountId, MukSaltFileName)
 	}
 
 	mukSalt := make([]byte, 8)
 
 	rand.Read(mukSalt)
 
-	if err := writeToFileName(MukSaltFileName, mukSalt); err != nil {
+	if err := writeToFileName(accountId, MukSaltFileName, mukSalt); err != nil {
 		return mukSalt, err
 	}
 
@@ -57,18 +56,18 @@ func internalKeyGet(clientSecret, salt []byte, masterPassword string, accountID 
 	return finalKey, nil
 }
 
-func (c *AsdfClient) GetMukSalt() ([]byte, error) {
+func (c *AsdfClient) GetMukSalt(accountId string) ([]byte, error) {
 	if c.mukSalt != nil {
 		return c.mukSalt, nil
 	}
 
-	return c.createMukSalt()
+	return c.createMukSalt(accountId)
 }
 
-func (c *AsdfClient) createMukSalt() ([]byte, error) {
+func (c *AsdfClient) createMukSalt(accountId string) ([]byte, error) {
 	var err error
 
-	c.mukSalt, err = generateAndSaveMukSalt()
+	c.mukSalt, err = generateAndSaveMukSalt(accountId)
 
 	if err != nil {
 		return c.mukSalt, err

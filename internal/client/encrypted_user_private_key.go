@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/smowafy/asdf/utils"
-	"os"
 )
 
 const EncryptedUserKeyFileName string = "encrypted-user-key.rsa.asdf"
@@ -96,42 +95,38 @@ func (eupk *EncryptedUserPrivateKey) RsaDecrypt(ciphertext []byte, muk []byte) (
 	return ev, nil
 }
 
-func readEncryptedUserPrivateKeyFromFile(filename string) (*EncryptedUserPrivateKey, error) {
-	payload, err := readFromFileName(EncryptedUserKeyFileName)
+func readEncryptedUserPrivateKeyFromFile(accountId, filename string) (*EncryptedUserPrivateKey, error) {
+	payload, err := readFromFileName(accountId, EncryptedUserKeyFileName)
 
 	if err != nil {
 		return nil, err
 	}
-
-	fmt.Printf("[readEncryptedUserPrivateKeyFromFile] encryptedUserPrivateKeyPayload: %v\n", string(payload))
 
 	return &EncryptedUserPrivateKey{data: payload}, nil
 }
 
-func generateAndSaveEncryptedUserPrivateKey(muk []byte) (*EncryptedUserPrivateKey, error) {
-	if _, err := os.Stat(EncryptedUserKeyFileName); err == nil {
-		return readEncryptedUserPrivateKeyFromFile(EncryptedUserKeyFileName)
+func generateAndSaveEncryptedUserPrivateKey(accountId string, muk []byte) (*EncryptedUserPrivateKey, error) {
+	if err := statFromFileName(accountId, EncryptedUserKeyFileName); err == nil {
+		return readEncryptedUserPrivateKeyFromFile(accountId, EncryptedUserKeyFileName)
 	}
 
 	encryptedUserPrivateKey, err := NewEncryptedUserPrivateKey(muk)
-
-	fmt.Printf("[generateAndSaveEncryptedUserPrivateKey] encryptedUserPrivateKey: %v\n", encryptedUserPrivateKey)
 
 	if err != nil {
 		return nil, err
 	}
 
-	if err = writeToFileName(EncryptedUserKeyFileName, encryptedUserPrivateKey.data); err != nil {
+	if err = writeToFileName(accountId, EncryptedUserKeyFileName, encryptedUserPrivateKey.data); err != nil {
 		return nil, err
 	}
 
 	return encryptedUserPrivateKey, nil
 }
 
-func (c *AsdfClient) createEncryptedUserPrivateKey(muk []byte) (*EncryptedUserPrivateKey, error) {
+func (c *AsdfClient) createEncryptedUserPrivateKey(accountId string, muk []byte) (*EncryptedUserPrivateKey, error) {
 	var err error
 
-	c.encryptedUserPrivateKey, err = generateAndSaveEncryptedUserPrivateKey(muk)
+	c.encryptedUserPrivateKey, err = generateAndSaveEncryptedUserPrivateKey(accountId, muk)
 
 	if err != nil {
 		return c.encryptedUserPrivateKey, err
@@ -140,10 +135,10 @@ func (c *AsdfClient) createEncryptedUserPrivateKey(muk []byte) (*EncryptedUserPr
 	return c.encryptedUserPrivateKey, nil
 }
 
-func (c *AsdfClient) getEncryptedUserPrivateKey(muk []byte) (*EncryptedUserPrivateKey, error) {
+func (c *AsdfClient) getEncryptedUserPrivateKey(accountId string, muk []byte) (*EncryptedUserPrivateKey, error) {
 	if c.encryptedUserPrivateKey != nil {
 		return c.encryptedUserPrivateKey, nil
 	}
 
-	return c.createEncryptedUserPrivateKey(muk)
+	return c.createEncryptedUserPrivateKey(accountId, muk)
 }

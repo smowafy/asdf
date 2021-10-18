@@ -18,11 +18,11 @@ type AsdfClient struct {
 func NewAsdfClient(masterPassword string, accountId string) (*AsdfClient, error) {
 	client := &AsdfClient{AccountId: accountId}
 
-	if _, err := client.createClientSecret(); err != nil {
+	if _, err := client.createClientSecret(accountId); err != nil {
 		return client, err
 	}
 
-	if _, err := client.createMukSalt(); err != nil {
+	if _, err := client.createMukSalt(accountId); err != nil {
 		return client, err
 	}
 
@@ -32,7 +32,7 @@ func NewAsdfClient(masterPassword string, accountId string) (*AsdfClient, error)
 		return client, err
 	}
 
-	if _, err := client.createEncryptedUserPrivateKey(muk); err != nil {
+	if _, err := client.createEncryptedUserPrivateKey(accountId, muk); err != nil {
 		return client, err
 	}
 

@@ -19,7 +19,7 @@ func (c *AsdfClient) EncryptVault(v common.Vault) ([]byte, error) {
 
 	// TODO: add account ID as label
 
-	privKey, err := c.getEncryptedUserPrivateKey(c.muk)
+	privKey, err := c.getEncryptedUserPrivateKey(c.AccountId, c.muk)
 
 	if err != nil {
 		return nil, err
@@ -35,7 +35,7 @@ func (c *AsdfClient) EncryptVault(v common.Vault) ([]byte, error) {
 }
 
 func (c *AsdfClient) DecryptVault(cipher []byte) (common.Vault, error) {
-	privKey, err := c.getEncryptedUserPrivateKey(c.muk)
+	privKey, err := c.getEncryptedUserPrivateKey(c.AccountId, c.muk)
 
 	if err != nil {
 		return nil, err
