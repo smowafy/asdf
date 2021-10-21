@@ -3,8 +3,8 @@ package server
 import (
 	"context"
 	"errors"
-	srp "github.com/opencoff/go-srp"
 	"github.com/smowafy/asdf/internal/proto"
+	srp "github.com/smowafy/go-srp"
 	"google.golang.org/grpc"
 )
 

@@ -3,7 +3,7 @@ package client
 import (
 	"crypto/rand"
 	"crypto/sha256"
-	srp "github.com/opencoff/go-srp"
+	srp "github.com/smowafy/go-srp"
 	"golang.org/x/crypto/hkdf"
 	"golang.org/x/crypto/scrypt"
 	"io"

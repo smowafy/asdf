@@ -2,7 +2,7 @@ package client
 
 import (
 	"encoding/json"
-	srp "github.com/opencoff/go-srp"
+	srp "github.com/smowafy/go-srp"
 )
 
 type AsdfClient struct {

@@ -79,6 +79,10 @@ func AesDecrypt(key []byte, encodedCipherText []byte) ([]byte, error) {
 
 	gcm, err := cipher.NewGCM(block)
 
+	if err != nil {
+		return nil, err
+	}
+
 	nonceSize := gcm.NonceSize()
 
 	//	fmt.Printf("nonce size: %v\n", nonceSize)
