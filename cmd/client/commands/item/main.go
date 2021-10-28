@@ -5,8 +5,7 @@ import (
 )
 
 var (
-	accountId string
-	password  string
+	sessionKey string
 )
 
 var ItemCommand = &cobra.Command{
@@ -18,7 +17,5 @@ func init() {
 	ItemCommand.AddCommand(ItemGetCommand)
 	ItemCommand.AddCommand(ItemSetCommand)
 
-	ItemCommand.PersistentFlags().StringVar(&accountId, "id", "", "account ID")
-	ItemCommand.PersistentFlags().StringVar(&password, "password", "", "password")
-
+	ItemCommand.PersistentFlags().StringVar(&sessionKey, "session-key", "", "Session key")
 }

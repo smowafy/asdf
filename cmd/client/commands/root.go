@@ -11,6 +11,7 @@ var (
 
 func init() {
 	rootCmd.AddCommand(SignUpCommand)
+	rootCmd.AddCommand(LoginCommand)
 	rootCmd.AddCommand(item.ItemCommand)
 }
 

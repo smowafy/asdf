@@ -9,6 +9,14 @@ import (
 	//	"fmt"
 )
 
+func AesGenerateKey() []byte {
+	k := make([]byte, 32)
+
+	rand.Read(k)
+
+	return k
+}
+
 func AesEncrypt(key []byte, payload []byte) ([]byte, error) {
 	//	fmt.Printf("------------- AES encrypt begin ----------------\n")
 	block, err := aes.NewCipher(key)

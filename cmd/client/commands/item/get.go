@@ -16,7 +16,7 @@ var ItemGetCommand = &cobra.Command{
 
 // TODO: pass account ID and password only once to client
 func RunItemGetCommand(cmd *cobra.Command, args []string) {
-	asdfClient, err := client.NewAsdfClient(password, accountId)
+	asdfClient, err := client.LoadSession(sessionKey)
 
 	if err != nil {
 		panic(err)
