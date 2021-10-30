@@ -4,20 +4,31 @@ import (
 	"fmt"
 	"github.com/smowafy/asdf/internal/client"
 	"github.com/spf13/cobra"
+	"golang.org/x/term"
+	"syscall"
 )
 
 var LoginCommand = &cobra.Command{
 	Use:   "login",
 	Short: "Sign in with account ID and password",
 	//	Long: `echo long`,
-	Args: cobra.ExactArgs(2),
+	Args: cobra.ExactArgs(1),
 	Run:  RunLoginCommand,
 }
 
 // TODO: pass account ID and password only once to client
 func RunLoginCommand(cmd *cobra.Command, args []string) {
-	accountId, password := args[0], args[1]
-	asdfClient, err := client.NewAsdfClient(password, accountId)
+	accountId := args[0]
+
+	fmt.Printf("password:\n")
+
+	password, err := term.ReadPassword(syscall.Stdin)
+
+	if err != nil {
+		panic(err)
+	}
+
+	asdfClient, err := client.NewAsdfClient(string(password), accountId)
 
 	if err != nil {
 		panic(err)

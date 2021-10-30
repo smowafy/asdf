@@ -7,6 +7,7 @@ require (
 	github.com/smowafy/go-srp v0.6.1-0.20211021204355-fe418cda8927
 	github.com/spf13/cobra v1.2.1
 	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519
+	golang.org/x/term v0.0.0-20201126162022-7de9c90e9dd1
 	google.golang.org/grpc v1.41.0
 	google.golang.org/protobuf v1.27.1
 )
