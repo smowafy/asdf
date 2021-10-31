@@ -5,7 +5,8 @@ import (
 )
 
 var (
-	sessionKey string
+	sessionKey     string
+	passwordLength int
 )
 
 var ItemCommand = &cobra.Command{

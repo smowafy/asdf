@@ -13,7 +13,6 @@ var SignUpCommand = &cobra.Command{
 	Run:  RunSignUpCommand,
 }
 
-// TODO: pass account ID and password only once to client
 func RunSignUpCommand(cmd *cobra.Command, args []string) {
 	accountId, password := args[0], args[1]
 	asdfClient, err := client.NewAsdfClient(password, accountId)

@@ -16,7 +16,6 @@ var LoginCommand = &cobra.Command{
 	Run:  RunLoginCommand,
 }
 
-// TODO: pass account ID and password only once to client
 func RunLoginCommand(cmd *cobra.Command, args []string) {
 	accountId := args[0]
 
