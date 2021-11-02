@@ -2,27 +2,35 @@ package client
 
 import (
 	"crypto/rand"
-	"crypto/rsa"
-	"crypto/sha256"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/smowafy/asdf/utils"
+	"golang.org/x/crypto/nacl/box"
+	"io"
 )
 
 const EncryptedUserKeyFileName string = "encrypted-user-key.rsa.asdf"
 
-type EncryptedUserPrivateKey struct {
-	data []byte
+const EncryptedUserPrivateKeyDefaultFileName string = "enc-priv.25519.asdf"
+const UserPublicKeyDefaultFileName string = "pub.25519.asdf"
+
+type EncryptedUserPrivateKey []byte
+type UserPublicKeyPtr *[32]byte
+
+type UserKeyPair struct {
+	encPrivateKey EncryptedUserPrivateKey
+	publicKey     UserPublicKeyPtr
 }
 
-func NewEncryptedUserPrivateKey(muk []byte) (*EncryptedUserPrivateKey, error) {
-	userPrivateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+func NewUserKeyPair(muk []byte) (*UserKeyPair, error) {
+	userPrivateKey, userPublicKey, err := box.GenerateKey(rand.Reader)
 
 	if err != nil {
 		return nil, err
 	}
 
-	fmt.Printf("[NewEncryptedUserPrivateKey] userPrivateKey: %v\n", userPrivateKey)
+	fmt.Printf("[NewEncryptedUserPrivateKey] key: %v\n", userPrivateKey)
 
 	encodedUserPrivateKey, err := json.Marshal(userPrivateKey)
 
@@ -30,21 +38,20 @@ func NewEncryptedUserPrivateKey(muk []byte) (*EncryptedUserPrivateKey, error) {
 		return nil, err
 	}
 
-	fmt.Printf("[NewEncryptedUserPrivateKey] encodedUserPrivateKey: %v\n", string(encodedUserPrivateKey))
-
 	encryptedUserPrivateKeyPayload, err := utils.AesEncrypt(muk, encodedUserPrivateKey)
 
 	if err != nil {
 		return nil, err
 	}
 
-	fmt.Printf("[NewEncryptedUserPrivateKey] encryptedUserPrivateKeyPayload: %v\n", encryptedUserPrivateKeyPayload)
-
-	return &EncryptedUserPrivateKey{data: encryptedUserPrivateKeyPayload}, nil
+	return &UserKeyPair{
+		encPrivateKey: encryptedUserPrivateKeyPayload,
+		publicKey:     userPublicKey,
+	}, nil
 }
 
-func (eupk *EncryptedUserPrivateKey) decryptUserKey(muk []byte) (*rsa.PrivateKey, error) {
-	encodedKey, err := utils.AesDecrypt(muk, eupk.data)
+func (eupk *EncryptedUserPrivateKey) decryptUserKey(muk []byte) (*[32]byte, error) {
+	encodedKey, err := utils.AesDecrypt(muk, *eupk)
 
 	if err != nil {
 		return nil, err
@@ -52,93 +59,149 @@ func (eupk *EncryptedUserPrivateKey) decryptUserKey(muk []byte) (*rsa.PrivateKey
 
 	fmt.Printf("[decryptUserKey] encodedKey: %v\n", string(encodedKey))
 
-	key := &rsa.PrivateKey{}
+	var key [32]byte
 
-	if err = json.Unmarshal(encodedKey, key); err != nil {
+	if err = json.Unmarshal(encodedKey, &key); err != nil {
 		return nil, err
 	}
 
 	fmt.Printf("[decryptUserKey] key: %v\n", key)
 
-	return key, nil
+	return &key, nil
 }
 
-func (eupk *EncryptedUserPrivateKey) RsaEncrypt(plaintext []byte, muk []byte) ([]byte, error) {
-	rsaKey, err := eupk.decryptUserKey(muk)
+func (ukp *UserKeyPair) SelfEncrypt(plaintext []byte, muk []byte) ([]byte, error) {
+	key, err := ukp.encPrivateKey.decryptUserKey(muk)
 
 	if err != nil {
 		return nil, err
 	}
 
-	cipher, err := rsa.EncryptOAEP(sha256.New(), rand.Reader, &rsaKey.PublicKey, plaintext, nil)
+	var nonce [24]byte
 
-	if err != nil {
+	if _, err := io.ReadFull(rand.Reader, nonce[:]); err != nil {
 		return nil, err
 	}
+
+	cipher := box.Seal(nonce[:], plaintext, &nonce, ukp.publicKey, key)
 
 	return cipher, nil
 }
 
-func (eupk *EncryptedUserPrivateKey) RsaDecrypt(ciphertext []byte, muk []byte) ([]byte, error) {
-	rsaKey, err := eupk.decryptUserKey(muk)
+func (ukp *UserKeyPair) SelfDecrypt(ciphertext []byte, muk []byte) ([]byte, error) {
+	key, err := ukp.encPrivateKey.decryptUserKey(muk)
 
 	if err != nil {
 		return nil, err
 	}
 
-	ev, err := rsa.DecryptOAEP(sha256.New(), rand.Reader, rsaKey, ciphertext, nil)
+	var nonce [24]byte
 
-	if err != nil {
-		return nil, err
+	copy(nonce[:], ciphertext[:24])
+
+	ev, ok := box.Open(nil, ciphertext[24:], &nonce, ukp.publicKey, key)
+
+	if !ok {
+		return nil, errors.New("decryption failure")
 	}
 
 	return ev, nil
 }
 
-func readEncryptedUserPrivateKeyFromFile(accountId, filename string) (*EncryptedUserPrivateKey, error) {
-	payload, err := readFromFileName(accountId, EncryptedUserKeyFileName)
+func readEncryptedUserPrivateKeyFromFile(accountId string) (EncryptedUserPrivateKey, error) {
+	return readFromFileName(accountId, EncryptedUserPrivateKeyDefaultFileName)
+}
+
+func readUserPublicKeyFromFile(accountId string) (UserPublicKeyPtr, error) {
+	payload, err := readFromFileName(accountId, UserPublicKeyDefaultFileName)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return &EncryptedUserPrivateKey{data: payload}, nil
+	var res [32]byte
+
+	copy(res[:], payload)
+
+	return &res, nil
 }
 
-func generateAndSaveEncryptedUserPrivateKey(accountId string, muk []byte) (*EncryptedUserPrivateKey, error) {
-	if err := statFromFileName(accountId, EncryptedUserKeyFileName); err == nil {
-		return readEncryptedUserPrivateKeyFromFile(accountId, EncryptedUserKeyFileName)
-	}
-
-	encryptedUserPrivateKey, err := NewEncryptedUserPrivateKey(muk)
+func readUserKeyPairFromFiles(accountId string) (*UserKeyPair, error) {
+	priv, err := readEncryptedUserPrivateKeyFromFile(accountId)
 
 	if err != nil {
 		return nil, err
 	}
 
-	if err = writeToFileName(accountId, EncryptedUserKeyFileName, encryptedUserPrivateKey.data); err != nil {
+	pub, err := readUserPublicKeyFromFile(accountId)
+
+	if err != nil {
 		return nil, err
 	}
 
-	return encryptedUserPrivateKey, nil
+	return &UserKeyPair{
+		encPrivateKey: priv,
+		publicKey:     pub,
+	}, nil
 }
 
-func (c *AsdfClient) createEncryptedUserPrivateKey(accountId string, muk []byte) (*EncryptedUserPrivateKey, error) {
+func keyPairExists(accountId string) bool {
+	if err := statFromFileName(accountId, EncryptedUserPrivateKeyDefaultFileName); err != nil {
+		return false
+	}
+	if err := statFromFileName(accountId, UserPublicKeyDefaultFileName); err != nil {
+		return false
+	}
+
+	return true
+}
+
+func generateAndSaveUserKeyPair(accountId string, muk []byte) (*UserKeyPair, error) {
+	if keyPairExists(accountId) {
+		return readUserKeyPairFromFiles(accountId)
+	}
+
+	userKeyPair, err := NewUserKeyPair(muk)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if err = writeToFileName(
+		accountId,
+		EncryptedUserPrivateKeyDefaultFileName,
+		userKeyPair.encPrivateKey,
+	); err != nil {
+		return nil, err
+	}
+
+	if err = writeToFileName(
+		accountId,
+		UserPublicKeyDefaultFileName,
+		(*userKeyPair.publicKey)[:],
+	); err != nil {
+		return nil, err
+	}
+
+	return userKeyPair, nil
+}
+
+func (c *AsdfClient) createUserKeyPair(accountId string, muk []byte) (*UserKeyPair, error) {
 	var err error
 
-	c.encryptedUserPrivateKey, err = generateAndSaveEncryptedUserPrivateKey(accountId, muk)
+	c.userKeyPair, err = generateAndSaveUserKeyPair(accountId, muk)
 
 	if err != nil {
-		return c.encryptedUserPrivateKey, err
+		return nil, err
 	}
 
-	return c.encryptedUserPrivateKey, nil
+	return c.userKeyPair, nil
 }
 
-func (c *AsdfClient) getEncryptedUserPrivateKey(accountId string, muk []byte) (*EncryptedUserPrivateKey, error) {
-	if c.encryptedUserPrivateKey != nil {
-		return c.encryptedUserPrivateKey, nil
+func (c *AsdfClient) getUserKeyPair(accountId string, muk []byte) (*UserKeyPair, error) {
+	if c.userKeyPair != nil {
+		return c.userKeyPair, nil
 	}
 
-	return c.createEncryptedUserPrivateKey(accountId, muk)
+	return c.createUserKeyPair(accountId, muk)
 }

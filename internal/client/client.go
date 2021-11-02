@@ -5,14 +5,14 @@ import (
 )
 
 type AsdfClient struct {
-	encryptedUserPrivateKey *EncryptedUserPrivateKey
-	clientSecret            []byte
-	mukSalt                 []byte
-	RawKey                  []byte
-	muk                     []byte
-	srpClient               *srp.Client
-	srpClientKey            []byte
-	AccountId               string
+	userKeyPair  *UserKeyPair
+	clientSecret []byte
+	mukSalt      []byte
+	RawKey       []byte
+	muk          []byte
+	srpClient    *srp.Client
+	srpClientKey []byte
+	AccountId    string
 }
 
 func NewAsdfClient(masterPassword string, accountId string) (*AsdfClient, error) {
@@ -32,7 +32,7 @@ func NewAsdfClient(masterPassword string, accountId string) (*AsdfClient, error)
 		return client, err
 	}
 
-	if _, err := client.createEncryptedUserPrivateKey(accountId, muk); err != nil {
+	if _, err := client.createUserKeyPair(accountId, muk); err != nil {
 		return client, err
 	}
 

@@ -120,7 +120,7 @@ func decryptedDeserialize(payload []byte, key []byte) (*AsdfClient, error) {
 		return nil, err
 	}
 
-	if _, err := client.createEncryptedUserPrivateKey(client.AccountId, client.muk); err != nil {
+	if _, err := client.createUserKeyPair(client.AccountId, client.muk); err != nil {
 		return client, err
 	}
 

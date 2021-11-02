@@ -19,13 +19,13 @@ func (c *AsdfClient) EncryptVault(v common.Vault) ([]byte, error) {
 
 	// TODO: add account ID as label
 
-	privKey, err := c.getEncryptedUserPrivateKey(c.AccountId, c.muk)
+	keyPair, err := c.getUserKeyPair(c.AccountId, c.muk)
 
 	if err != nil {
 		return nil, err
 	}
 
-	cipher, err := privKey.RsaEncrypt(ev, c.muk)
+	cipher, err := keyPair.SelfEncrypt(ev, c.muk)
 
 	if err != nil {
 		return nil, err
@@ -35,13 +35,13 @@ func (c *AsdfClient) EncryptVault(v common.Vault) ([]byte, error) {
 }
 
 func (c *AsdfClient) DecryptVault(cipher []byte) (common.Vault, error) {
-	privKey, err := c.getEncryptedUserPrivateKey(c.AccountId, c.muk)
+	keyPair, err := c.getUserKeyPair(c.AccountId, c.muk)
 
 	if err != nil {
 		return nil, err
 	}
 
-	ev, err := privKey.RsaDecrypt(cipher, c.muk)
+	ev, err := keyPair.SelfDecrypt(cipher, c.muk)
 
 	if err != nil {
 		return nil, err
